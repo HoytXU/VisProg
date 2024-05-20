@@ -145,19 +145,53 @@ class ResultInterpreter():
 class VQAInterpreter():
     step_name = 'VQA'
 
+    # def __init__(self):
+    #     print(f'Registering {self.step_name} step')
+    #     self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
+    #     self.processor = AutoProcessor.from_pretrained("Salesforce/blip-vqa-capfilt-large")
+    #     self.model = BlipForQuestionAnswering.from_pretrained(
+    #         "Salesforce/blip-vqa-capfilt-large").to(self.device)
+    #     self.model.eval()
+
+
+
     def __init__(self):
         print(f'Registering {self.step_name} step')
         self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
+
+        print("using ViltForQuestionAnswering model")
+
         self.processor = AutoProcessor.from_pretrained("Salesforce/blip-vqa-capfilt-large")
         self.model = BlipForQuestionAnswering.from_pretrained(
             "Salesforce/blip-vqa-capfilt-large").to(self.device)
+
+        # self.processor = ViltProcessor.from_pretrained("dandelin/vilt-b32-finetuned-vqa")
+        # self.model = ViltForQuestionAnswering.from_pretrained("dandelin/vilt-b32-finetuned-vqa").to(self.device)
+
+
+
+        # self.model = CLIPModel.from_pretrained("openai/clip-vit-large-patch14")
+        # self.processor = CLIPProcessor.from_pretrained("openai/clip-vit-large-patch14")
+        
+        # self.processor = ViltProcessor.from_pretrained("openai/vil-large-coco")
+        # self.model = ViltForQuestionAnswering.from_pretrained("openai/vil-large-coco")
+
+        # self.processor = ViltProcessor.from_pretrained("openai/clip-vit-base-patch32")
+        # self.model = ViltForQuestionAnswering.from_pretrained("openai/clip-vit-base-patch32")
+
+
+
         self.model.eval()
+
+
+
 
     def parse(self,prog_step):
         parse_result = parse_step(prog_step.prog_str)
         step_name = parse_result['step_name']
         args = parse_result['args']
         img_var = args['image']
+        print(args['question'])
         question = eval(args['question'])
         output_var = parse_result['output_var']
         assert(step_name==self.step_name)
@@ -183,6 +217,7 @@ class VQAInterpreter():
     def execute(self,prog_step,inspect=False):
         img_var,question,output_var = self.parse(prog_step)
         img = prog_step.state[img_var]
+        print(question)
         answer = self.predict(img,question)
         prog_step.state[output_var] = answer
         if inspect:
